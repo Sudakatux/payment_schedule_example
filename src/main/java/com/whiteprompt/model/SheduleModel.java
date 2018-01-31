@@ -1,6 +1,8 @@
-package com.whiteprompt;
+package com.whiteprompt.model;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.Month;
 
@@ -9,14 +11,16 @@ public class SheduleModel {
     private Month paymentMonth;
     private BigDecimal principal;
     private BigDecimal interest;
-    private BigDecimal RemainingPrincipal;
+    private BigDecimal remainingPrincipal;
+
+    private static final MathContext mathContext = new MathContext(6, RoundingMode.HALF_DOWN);
 
     public SheduleModel(BigDecimal payment, Month paymentMonth, BigDecimal principal, BigDecimal interest, BigDecimal remainingPrincipal) {
-        this.payment = payment;
+        this.payment = payment.round(mathContext);
         this.paymentMonth = paymentMonth;
-        this.principal = principal;
-        this.interest = interest;
-        RemainingPrincipal = remainingPrincipal;
+        this.principal = principal.round(mathContext);
+        this.interest = interest.round(mathContext);
+        this.remainingPrincipal = remainingPrincipal.round(mathContext);
     }
 
     public BigDecimal getPayment() {
@@ -36,7 +40,7 @@ public class SheduleModel {
     }
 
     public BigDecimal getRemainingPrincipal() {
-        return RemainingPrincipal;
+        return remainingPrincipal;
     }
 
     @Override
