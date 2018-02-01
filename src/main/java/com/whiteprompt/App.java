@@ -3,16 +3,13 @@ package com.whiteprompt;
 import com.whiteprompt.model.FuturePayment;
 import de.vandermeer.asciitable.AsciiTable;
 
-import javax.swing.text.DateFormatter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +42,7 @@ public class App
                 futurePayments = parseFuturePayments(simulations);
                 System.out.println("Using.. "+args.length+" passed parameters. non passed paramers will use default values");
             } else {
-                System.out.println("Ups Unknown param. use: --closeDateStartDateInterestLoanAmountSimulations 2017-12-04 2018-01-01 1000 (2018-01-01=1000, 2018-02-01=100)");
+                System.out.println("Ups Unknown param. use: --closeDateStartDateInterestLoanAmountSimulations 2017-12-04 2018-01-01 1000 [2018-01-01=1000, 2018-02-01=100]");
             }
 
 
@@ -68,13 +65,18 @@ public class App
 
     }
 
+    /**
+     * Processs parameter converts (date=amount) to a list of future payments
+     * @param parsableSimulation
+     * @return
+     */
     public static final List<FuturePayment> parseFuturePayments(final String parsableSimulation){
-        return Arrays.asList(parsableSimulation
-                .substring(parsableSimulation.indexOf("(")+1, parsableSimulation.indexOf(")"))
+        return parsableSimulation.contains("[") ? Arrays.asList(parsableSimulation
+                .substring(parsableSimulation.indexOf("[")+1, parsableSimulation.indexOf("]"))
                 .split(","))
                 .stream()
                 .map(dateAmount-> dateAmount.split("="))
                 .map(arr-> new FuturePayment(LocalDate.parse(arr[0].trim(), dtf), new BigDecimal(arr[1].trim())))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()): new ArrayList<FuturePayment>();
     }
 }

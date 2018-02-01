@@ -65,7 +65,7 @@ public class AppTest
     }
 
     public void testParsableSimulation(){
-        final String testSimulation = "(2018-01-01=1000, 2018-02-01=100)";
+        final String testSimulation = "[2018-01-01=1000, 2018-02-01=100]";
         List<FuturePayment> futurePayments = App.parseFuturePayments(testSimulation);
         assertTrue(futurePayments.get(0).getFutureDate().getYear() == 2018 &&
                 futurePayments.get(0).getFutureDate().getMonth() == Month.JANUARY);

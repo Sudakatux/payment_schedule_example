@@ -9,17 +9,20 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ScheduleService {
-    final LocalDate closingDate;
-    final LocalDate startDate;
-    final BigDecimal yearlyInterest;
-    final BigDecimal loanAmount;
-    final List<FuturePayment> futurePaymentList;
-    final BigDecimal interestPercent;
-    final BigDecimal monthlyInterestPercent;
-    final int term = 24;
+    private final LocalDate closingDate;
+    private final LocalDate startDate;
+    private final BigDecimal yearlyInterest;
+    private final BigDecimal loanAmount;
+    private final List<FuturePayment> futurePaymentList;
+    private final BigDecimal interestPercent;
+    private final BigDecimal monthlyInterestPercent;
+
+    private static final int term = 24;
+    private static final MathContext mathContext =  new MathContext(6, RoundingMode.HALF_DOWN);
 
     public ScheduleService(LocalDate closingDate, LocalDate startDate, int interestParam, int loanAmountParam, List<FuturePayment> futurePaymentList) {
         this.closingDate = closingDate;
@@ -39,24 +42,23 @@ public class ScheduleService {
     public List<SheduleModel> createShedule(){
 
         final BigDecimal dailyInterestForGivenYear = yearlyInterest
-                .divide(new BigDecimal(365), new MathContext(6, RoundingMode.HALF_DOWN));
+                .divide(new BigDecimal(365), mathContext);
 
-
-        List<SheduleModel> shedule = new ArrayList<SheduleModel>();
-
-        // Add days of only interest
-        shedule.add(new SheduleModel(
+        // If closing date is before start date. calculate the interest in days, else return an empty array
+        List<SheduleModel> shedule = closingDate.isBefore(startDate) ? new ArrayList<SheduleModel>(Arrays.asList(new SheduleModel(
                 BigDecimal.ZERO,
                 closingDate.getMonth(),
                 BigDecimal.ZERO,
                 dailyInterestForGivenYear
-                        .divide(new BigDecimal(100), new MathContext(6, RoundingMode.HALF_DOWN))
+                        .divide(new BigDecimal(100), mathContext)
                         .multiply(new BigDecimal(ChronoUnit.DAYS.between(closingDate, startDate)))
                         .multiply(loanAmount)
                 ,
-                loanAmount));
+                loanAmount))) : new ArrayList<SheduleModel>();
 
-        for(int i=0; i < term; i++){
+
+
+        for(int i=0; i < term; i++){ // iterate over the terms Generating the payment chedule
             final BigDecimal lastRemainingPrincipal = shedule
                     .stream()
                     .map(SheduleModel::getRemainingPrincipal)
@@ -78,6 +80,13 @@ public class ScheduleService {
         return shedule;
     }
 
+    /**
+     * Will return the payment for the given month
+     * @param paymentDate date the payment will take place
+     * @param leftTerms Remianing term to pay
+     * @param lastRemainingPrincipal remianing principle from previous payment
+     * @return Payment for that given month
+     */
     private BigDecimal getPayment(final LocalDate paymentDate, int leftTerms,  BigDecimal lastRemainingPrincipal){
        return futurePaymentList
                 .stream()
@@ -89,12 +98,18 @@ public class ScheduleService {
 
     }
 
+    /**
+     * Calculates PMT formula https://en.wikipedia.org/wiki/Fixed-rate_mortgage
+     * @param leftTerms terms left for payment
+     * @param lastRemainingPrincipal Remaining payment
+     * @return Payment
+     */
     private BigDecimal calculatePMT(int leftTerms, BigDecimal lastRemainingPrincipal){
         return lastRemainingPrincipal.multiply(monthlyInterestPercent).divide(
                 new BigDecimal(1)
                         .subtract(new BigDecimal(1)
                                 .add(monthlyInterestPercent)
-                                .pow(- leftTerms, new MathContext(6, RoundingMode.HALF_DOWN))),
+                                .pow(- leftTerms, mathContext)),
                 RoundingMode.HALF_DOWN
         );
     }
