@@ -62,6 +62,18 @@ public class AppTest
         });
 
         System.out.println(at.render());
-
     }
+
+    public void testParsableSimulation(){
+        final String testSimulation = "(2018-01-01=1000, 2018-02-01=100)";
+        List<FuturePayment> futurePayments = App.parseFuturePayments(testSimulation);
+        assertTrue(futurePayments.get(0).getFutureDate().getYear() == 2018 &&
+                futurePayments.get(0).getFutureDate().getMonth() == Month.JANUARY);
+        assertTrue(futurePayments.get(0).getFuturePayment().equals(new BigDecimal(1000)));
+
+        assertTrue(futurePayments.get(1).getFutureDate().getYear() == 2018 &&
+                futurePayments.get(1).getFutureDate().getMonth() == Month.FEBRUARY);
+        assertTrue(futurePayments.get(1).getFuturePayment().equals(new BigDecimal(100)));
+    }
+
 }

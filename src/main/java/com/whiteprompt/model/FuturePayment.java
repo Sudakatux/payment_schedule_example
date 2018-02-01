@@ -19,4 +19,10 @@ public class FuturePayment {
     public BigDecimal getFuturePayment() {
         return futurePayment;
     }
+
+    @Override
+    public String toString() {
+        return "futureDate: "+ futureDate+"\n" +
+                "futurePayment: "+ futurePayment+"\n";
+    }
 }

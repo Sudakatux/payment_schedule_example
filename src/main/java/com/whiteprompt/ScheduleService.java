@@ -32,6 +32,10 @@ public class ScheduleService {
         monthlyInterestPercent = interestPercent.divide(new BigDecimal(12));
     }
 
+    /**
+     * Creates the shedule for the given model
+     * @return
+     */
     public List<SheduleModel> createShedule(){
 
         final BigDecimal dailyInterestForGivenYear = yearlyInterest
@@ -39,6 +43,7 @@ public class ScheduleService {
 
 
         List<SheduleModel> shedule = new ArrayList<SheduleModel>();
+
         // Add days of only interest
         shedule.add(new SheduleModel(
                 BigDecimal.ZERO,
@@ -51,39 +56,13 @@ public class ScheduleService {
                 ,
                 loanAmount));
 
-        // mutator to build up shedule
-        LocalDate startingIn = startDate;
-
-
-
-        // PMT =
-        //monthlyPayment = (totalAmount*periodicInterestRate)/(1-(1+periodicInterestRate)^-term)
-//        final BigDecimal totalAmount = loanAmount.multiply(
-//                interestPercent
-//                .add(new BigDecimal(1)))
-//                .multiply(interestPercent.add(new BigDecimal(1)));
-
-        //final BigDecimal payment = totalAmount.divide(new BigDecimal(term), RoundingMode.HALF_DOWN);
-//        final BigDecimal payment = loanAmount.multiply(monthlyInterestPercent).divide(
-//                new BigDecimal(1)
-//                        .subtract(new BigDecimal(1)
-//                                .add(monthlyInterestPercent)
-//                                .pow(- term, new MathContext(6, RoundingMode.HALF_DOWN))),
-//                RoundingMode.HALF_DOWN
-//        );
-
-//        final BigDecimal fixedInterestPerMonth = totalAmount
-//                .subtract(loanAmount)
-//                .divide(new BigDecimal(term), RoundingMode.HALF_DOWN);
-
         for(int i=0; i < term; i++){
             final BigDecimal lastRemainingPrincipal = shedule
                     .stream()
                     .map(SheduleModel::getRemainingPrincipal)
                     .reduce((__, second) -> second).orElse(loanAmount);
             final BigDecimal currentInterest = monthlyInterestPercent.multiply(lastRemainingPrincipal);
-            final LocalDate paymentDate = startingIn.plusMonths(i);
-           // final BigDecimal payment = calculatePMT(term-i,lastRemainingPrincipal);
+            final LocalDate paymentDate = startDate.plusMonths(i);
             final BigDecimal payment = getPayment(paymentDate,term-i, lastRemainingPrincipal);
             final BigDecimal currentPrincipal = payment.subtract(currentInterest);
 
